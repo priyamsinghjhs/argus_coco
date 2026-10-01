@@ -2,6 +2,8 @@
 
 **A governed, explainable AI copilot for banking fraud detection, AML compliance, credit risk monitoring, and regulatory reporting -- built entirely on Snowflake.**
 
+Argus turns raw banking data into actionable signals in minutes through four detection typologies, role-based governance, natural-language investigation, and a governed dashboard, with CLI-based Snowflake deployment.
+
 > All data in this project is 100% synthetic. No proprietary, confidential, or production data from any organization is included anywhere in this repository.
 
 ---
@@ -207,4 +209,3 @@ Argus is designed for the Indian banking/NBFC regulatory landscape:
 - **Languages**: Python (stored procedures, Streamlit app), SQL (DDL, DML, dynamic tables)
 - **Snowflake Features**: Dynamic Tables, Cortex Agent, Cortex Analyst, Cortex Search, Semantic Views, Masking Policies, RBAC, Notification Integration, Snowflake Tasks, Streamlit-in-Snowflake
 - **Built with**: Snowflake Cortex Code (CoCo) across the full lifecycle -- planning, development, execution, testing, and hardening
-"# argus_coco" 
