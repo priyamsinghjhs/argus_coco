@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Argus Risk Copilot - Submission Deck</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      color: #1e293b; background: #fff;
+      width: 100%; max-width: 1100px; margin: 0 auto;
+      padding: 0;
+    }
+    .slide {
+      width: 100%; min-height: 750px;
+      padding: 48px 56px;
+      page-break-after: always;
+      position: relative;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .slide:last-child { page-break-after: avoid; border-bottom: none; }
+    h1 { font-size: 36px; color: #0f172a; margin-bottom: 8px; line-height: 1.2; }
+    h2 { font-size: 26px; color: #1e40af; margin-bottom: 16px; border-bottom: 3px solid #3b82f6; padding-bottom: 8px; }
+    h3 { font-size: 20px; color: #1e3a5f; margin: 16px 0 8px; }
+    p, li { font-size: 15px; line-height: 1.6; }
+    ul { margin-left: 20px; }
+    li { margin-bottom: 4px; }
+    .subtitle { font-size: 18px; color: #64748b; margin-bottom: 24px; }
+    .tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-amber { background: #fef3c7; color: #92400e; }
+    .tag-red { background: #fee2e2; color: #991b1b; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 20px 0; }
+    .metric { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; }
+    .metric .num { font-size: 32px; font-weight: 700; color: #1e40af; }
+    .metric .label { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    th { background: #f1f5f9; font-weight: 600; text-align: left; padding: 8px 10px; border: 1px solid #e2e8f0; }
+    td { padding: 7px 10px; border: 1px solid #e2e8f0; }
+    .arch-flow { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; font-family: monospace; font-size: 14px; line-height: 2; margin: 16px 0; }
+    .footer { position: absolute; bottom: 20px; right: 56px; font-size: 11px; color: #94a3b8; }
+    .highlight { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .badge-pass { background: #dcfce7; color: #166534; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
+    .slide-num { position: absolute; bottom: 20px; left: 56px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+  <div style="font-size:72px; margin-bottom:16px;">&#x1F6E1;</div>
+  <h1 style="font-size:48px; border:none;">ARGUS Risk Copilot</h1>
+  <p class="subtitle" style="font-size:22px;">A Governed, Explainable AI Copilot for Banking Fraud Detection,<br>AML Compliance, Credit Risk & Regulatory Reporting</p>
+  <div style="margin: 24px 0;">
+    <span class="tag">Cortex Agent</span>
+    <span class="tag">Cortex Analyst</span>
+    <span class="tag">Cortex Search</span>
+    <span class="tag">Dynamic Tables</span>
+    <span class="tag">Semantic View</span>
+    <span class="tag">Streamlit-in-Snowflake</span>
+    <span class="tag">RBAC + Masking</span>
+  </div>
+  <p style="color:#64748b; font-size:16px; margin-top:16px;">Built 100% on Snowflake with Cortex Code (CoCo) | All data synthetic | Indian banking regulatory context (RBI/PMLA/FIU-IND)</p>
+  <div class="slide-num">1</div>
+</div>
+
+<!-- SLIDE 2: Problem & Solution -->
+<div class="slide">
+  <h2>The Problem & Our Solution</h2>
+  <div class="two-col">
+    <div>
+      <h3>The Problem</h3>
+      <ul>
+        <li>Banks detect fraud reactively, with siloed teams and manual processes</li>
+        <li>Compliance officers lack unified view across fraud, AML, credit risk, and liquidity</li>
+        <li>Investigation evidence is scattered; regulatory filings are error-prone</li>
+        <li>No governed AI layer: LLMs hallucinate without data grounding</li>
+        <li>PII exposure risks during cross-team collaboration</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Argus: The Governed AI Copilot</h3>
+      <ul>
+        <li><strong>Automated detection</strong> of 4 fraud typologies via rule-based Dynamic Tables</li>
+        <li><strong>Evidence-first AI</strong>: Cortex Agent queries only through Semantic View + Policy Search</li>
+        <li><strong>SIGNAL &rarr; EVIDENCE &rarr; FINDING &rarr; REPORT</strong> governance loop with human-in-the-loop approval</li>
+        <li><strong>Column-level PII masking</strong> with 7 RBAC roles</li>
+        <li><strong>Full audit trail</strong>: every query, action, and notification logged</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">2</div>
+</div>
+
+<!-- SLIDE 3: Architecture -->
+<div class="slide">
+  <h2>Architecture</h2>
+  <div class="arch-flow">
+    RAW Tables (8 tables, 117K+ rows) &rarr; <strong>7 Dynamic Tables</strong> (CONFORMED, incremental)<br>
+    &darr;<br>
+    <strong>SIGNALS_ALERTS DT</strong> (15-min lag, 4 typology rules) &rarr; 85 signals auto-detected<br>
+    &darr;<br>
+    <strong>Cortex Agent</strong> (6 tools) + <strong>Semantic View</strong> (11 tables, 8 metrics) + <strong>Cortex Search</strong> (136 policy chunks)<br>
+    &darr;<br>
+    Cases &rarr; Findings &rarr; <strong>APPROVE_REPORT</strong> (procedure-gated) &rarr; Regulatory Reports<br>
+    &darr;<br>
+    <strong>Multi-channel Notifications</strong> (Email live, Slack/Teams/SMS/Jira stubs) + <strong>Daily Digest Task</strong>
+  </div>
+  <div class="metric-grid">
+    <div class="metric"><div class="num">13</div><div class="label">SQL Scripts (idempotent)</div></div>
+    <div class="metric"><div class="num">8</div><div class="label">Dynamic Tables</div></div>
+    <div class="metric"><div class="num">7</div><div class="label">RBAC Roles</div></div>
+    <div class="metric"><div class="num">6</div><div class="label">Agent Tools</div></div>
+  </div>
+  <div class="slide-num">3</div>
+</div>
+
+<!-- SLIDE 4: Detection Engine -->
+<div class="slide">
+  <h2>Detection Engine: 4 Fraud Typologies</h2>
+  <table>
+    <thead>
+      <tr><th>Typology</th><th>Rule Logic</th><th>Detected</th><th>Precision</th><th>Recall</th><th>Severity</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Structuring</strong></td><td>3+ cash deposits INR 2.5-3.5L within 48hrs, 2+ geos, total near 10L</td><td>19</td><td><span class="badge badge-pass">100%</span></td><td>76%</td><td>HIGH</td></tr>
+      <tr><td><strong>Money Mule</strong></td><td>60+ day dormancy, 10+ inbound from distinct senders, rapid outbound</td><td>14</td><td><span class="badge badge-pass">100%</span></td><td>93%</td><td>CRITICAL</td></tr>
+      <tr><td><strong>Account Takeover</strong></td><td>New device + contact/password change (strict: +high-value debit)</td><td>40</td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-pass">100%</span></td><td>CRITICAL/HIGH</td></tr>
+      <tr><td><strong>Loan Stacking</strong></td><td>3+ loans in 14-day window, total principal &gt; 25L</td><td>12</td><td><span class="badge badge-pass">100%</span></td><td><span class="badge badge-pass">100%</span></td><td>HIGH</td></tr>
+    </tbody>
+  </table>
+  <div class="highlight">
+    <strong>Zero false positives</strong> across all 4 typologies. Two-tier ATO detection: CRITICAL (device change + contact change + high-value transfer) and HIGH (device change + contact change only).
+  </div>
+  <p style="margin-top:12px; font-size:13px; color:#64748b;">Ground truth: 25 structuring, 15 mule, 20 ATO, 12 loan stacking customers injected into synthetic data with _gt_* flags.</p>
+  <div class="slide-num">4</div>
+</div>
+
+<!-- SLIDE 5: AI Agent -->
+<div class="slide">
+  <h2>Cortex Agent: Governed AI</h2>
+  <div class="two-col">
+    <div>
+      <h3>6 Agent Tools</h3>
+      <table>
+        <tr><th>Tool</th><th>Type</th><th>Purpose</th></tr>
+        <tr><td>argus_data_analyst</td><td>cortex_analyst</td><td>Semantic View queries</td></tr>
+        <tr><td>policy_search</td><td>cortex_search</td><td>136 policy chunks</td></tr>
+        <tr><td>create_update_case</td><td>generic/proc</td><td>Case management</td></tr>
+        <tr><td>draft_finding_report</td><td>generic/proc</td><td>Finding drafts</td></tr>
+        <tr><td>log_question</td><td>generic/proc</td><td>Audit trail</td></tr>
+        <tr><td>notify_state_change</td><td>generic/proc</td><td>Notifications</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Governance Principles</h3>
+      <ul>
+        <li><strong>Evidence-first:</strong> No answer without data citations</li>
+        <li><strong>Confidence levels:</strong> HIGH/MEDIUM/LOW on every response</li>
+        <li><strong>Never raw SQL:</strong> All data access via Semantic View</li>
+        <li><strong>Human-in-the-loop:</strong> All filings start as DRAFT</li>
+        <li><strong>Audit trail:</strong> Every question logged with user identity</li>
+      </ul>
+      <h3 style="margin-top:16px;">Semantic View</h3>
+      <ul>
+        <li>11 logical tables, 9 relationships</li>
+        <li>8 facts, 34 dimensions, 8 metrics</li>
+        <li>5 verified queries</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">5</div>
+</div>
+
+<!-- SLIDE 6: Security & Governance -->
+<div class="slide">
+  <h2>Security & Governance</h2>
+  <div class="two-col">
+    <div>
+      <h3>RBAC Model (7 Roles)</h3>
+      <table>
+        <tr><th>Role</th><th>Pages</th><th>PII</th></tr>
+        <tr><td>PLATFORM_ADMIN</td><td>All 7</td><td>Full</td></tr>
+        <tr><td>COMPLIANCE_OFFICER</td><td>6</td><td>Full</td></tr>
+        <tr><td>FRAUD_ANALYST</td><td>4</td><td>Masked</td></tr>
+        <tr><td>CREDIT_ANALYST</td><td>3</td><td>Masked</td></tr>
+        <tr><td>TREASURY_ANALYST</td><td>1</td><td>Masked</td></tr>
+        <tr><td>AUDITOR</td><td>5</td><td>Full</td></tr>
+        <tr><td>BRANCH_USER</td><td>1</td><td>Masked</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>5 Masking Policies (CURRENT_ROLE)</h3>
+      <ul>
+        <li>MASK_NAME: customer names</li>
+        <li>MASK_EMAIL: email addresses</li>
+        <li>MASK_PHONE: phone numbers</li>
+        <li>MASK_ADDRESS: physical addresses</li>
+        <li>MASK_DEVICE_ID: device identifiers</li>
+      </ul>
+      <h3 style="margin-top:16px;">Approval Gate</h3>
+      <ul>
+        <li>APPROVE_REPORT stored procedure (EXECUTE AS OWNER)</li>
+        <li>Validates role, validates status, sets approved_by</li>
+        <li>Logs to REVIEWER_ACTIONS + dispatches notification</li>
+        <li>Only DRAFT/RETURNED reports can be actioned</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight">
+    <strong>Verified:</strong> FRAUD_ANALYST sees ***MASKED***, ****@domain.com, +91XXXXX1234. COMPLIANCE_OFFICER sees full plaintext.
+  </div>
+  <div class="slide-num">6</div>
+</div>
+
+<!-- SLIDE 7: Streamlit Dashboard -->
+<div class="slide">
+  <h2>Streamlit Dashboard (7 Pages)</h2>
+  <div class="three-col">
+    <div>
+      <h3>Ask Argus</h3>
+      <p>Chat with governed agent via DATA_AGENT_RUN. Uses Semantic View + Policy Search.</p>
+    </div>
+    <div>
+      <h3>Alert Queue</h3>
+      <p>85 signals with typology/severity filters, sort options, case status overlay.</p>
+    </div>
+    <div>
+      <h3>Case Detail</h3>
+      <p>Evidence JSON, findings, reviewer actions. Case status updates with audit trail.</p>
+    </div>
+    <div>
+      <h3>Liquidity & Credit</h3>
+      <p>LCR proxy trend, NPA/DPD buckets, early warning borrowers (bureau score drop).</p>
+    </div>
+    <div>
+      <h3>Regulatory Reporting</h3>
+      <p>Draft filings queue, procedure-gated approval, examiner audit view.</p>
+    </div>
+    <div>
+      <h3>Audit Log</h3>
+      <p>Agent question log + reviewer actions history with search.</p>
+    </div>
+  </div>
+  <div style="margin-top:16px;">
+    <h3>Integrations Page</h3>
+    <p>Dynamic email recipient management, per-recipient alert preferences, channel configuration (Email/Slack/SMS/Teams/Jira), notification dispatch log.</p>
+  </div>
+  <div class="slide-num">7</div>
+</div>
+
+<!-- SLIDE 8: Notifications & Automation -->
+<div class="slide">
+  <h2>Notifications & Automation</h2>
+  <div class="two-col">
+    <div>
+      <h3>Multi-Channel Dispatcher</h3>
+      <table>
+        <tr><th>Channel</th><th>Status</th><th>Evidence</th></tr>
+        <tr><td>Email</td><td><span class="badge badge-pass">LIVE</span></td><td>3 real dispatches logged</td></tr>
+        <tr><td>Slack</td><td><span class="badge badge-warn">STUB</span></td><td>Webhook config ready</td></tr>
+        <tr><td>SMS</td><td><span class="badge badge-warn">STUB</span></td><td>Twilio extension point</td></tr>
+        <tr><td>Teams</td><td><span class="badge badge-warn">STUB</span></td><td>Webhook config ready</td></tr>
+        <tr><td>Jira</td><td><span class="badge badge-warn">STUB</span></td><td>Project/issue config ready</td></tr>
+      </table>
+      <p style="margin-top:12px; font-size:13px;">Each channel: per-channel error isolation, severity thresholds, audit logging with error detail.</p>
+    </div>
+    <div>
+      <h3>Scheduled Task</h3>
+      <ul>
+        <li><strong>DAILY_SIGNAL_DIGEST</strong>: CRON 0 8 * * * Asia/Kolkata</li>
+        <li>Sends HTML digest of open signals to all email recipients</li>
+        <li>2 consecutive successful runs verified</li>
+      </ul>
+      <h3 style="margin-top:16px;">Notification Log</h3>
+      <table>
+        <tr><th>Event</th><th>Channel</th><th>Status</th></tr>
+        <tr><td>DAILY_DIGEST</td><td>EMAIL</td><td><span class="badge badge-pass">SENT</span></td></tr>
+        <tr><td>CASE_ESCALATED</td><td>EMAIL</td><td><span class="badge badge-pass">SENT</span></td></tr>
+        <tr><td>REPORT_APPROVED</td><td>EMAIL</td><td><span class="badge badge-pass">SENT</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="slide-num">8</div>
+</div>
+
+<!-- SLIDE 9: CoCo Lifecycle -->
+<div class="slide">
+  <h2>Built with Cortex Code: Full Lifecycle</h2>
+  <div class="three-col">
+    <div>
+      <h3>Planning</h3>
+      <ul>
+        <li>8-phase build plan</li>
+        <li>Data model design</li>
+        <li>RBAC role hierarchy</li>
+        <li>Detection rule specs</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Development</h3>
+      <ul>
+        <li>13 SQL scripts authored</li>
+        <li>Agent YAML spec</li>
+        <li>Semantic View DDL</li>
+        <li>Streamlit app (672 lines)</li>
+        <li>Python stored procedures</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Testing & Hardening</h3>
+      <ul>
+        <li>Precision/recall validation</li>
+        <li>SQL injection audit + fix</li>
+        <li>PII masking verification</li>
+        <li>Idempotency testing</li>
+        <li>Error handling hardening</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight" style="margin-top:20px;">
+    <strong>CoCo Skills Used:</strong> sql-author, dynamic-tables, agent-studio (agent + semantic view deployment), developing-with-streamlit-in-snowflake, data-governance, notification, snowflake-tasks, cortex-ai-function-studio, html-authoring
+  </div>
+  <div class="slide-num">9</div>
+</div>
+
+<!-- SLIDE 10: Reproducibility & Compliance -->
+<div class="slide">
+  <h2>Reproducibility & Contest Compliance</h2>
+  <div class="two-col">
+    <div>
+      <h3>Deploy from Scripts (13 steps)</h3>
+      <table>
+        <tr><th>#</th><th>Script</th><th>Purpose</th></tr>
+        <tr><td>00</td><td>setup.sql</td><td>Database + schemas</td></tr>
+        <tr><td>01</td><td>raw_tables.sql</td><td>8 table DDLs</td></tr>
+        <tr><td>02</td><td>synthetic_data.sql</td><td>GENERATOR() bulk data</td></tr>
+        <tr><td>03</td><td>ground_truth.sql</td><td>4 typology injections</td></tr>
+        <tr><td>04</td><td>unstructured_docs.sql</td><td>6 policy documents</td></tr>
+        <tr><td>05</td><td>conformed_dts.sql</td><td>7 Dynamic Tables</td></tr>
+        <tr><td>06</td><td>signals_pipeline.sql</td><td>Detection rules DT</td></tr>
+        <tr><td>07</td><td>rbac_masking.sql</td><td>Roles + policies</td></tr>
+        <tr><td>08</td><td>semantic_view.sql</td><td>Semantic view DDL</td></tr>
+        <tr><td>09</td><td>policy_search.sql</td><td>Cortex Search svc</td></tr>
+        <tr><td>10</td><td>agent.sql</td><td>Agent procedures</td></tr>
+        <tr><td>11</td><td>streamlit.sql</td><td>Dashboard deploy</td></tr>
+        <tr><td>12</td><td>notifications.sql</td><td>Email + dispatcher</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Contest Checklist</h3>
+      <table>
+        <tr><td>All code Python/SQL</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>100% synthetic data</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>No secrets committed</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>All English</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>GitHub structure</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>Datasets listed</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>Idempotent scripts</td><td><span class="badge badge-pass">PASS</span></td></tr>
+        <tr><td>SQL injection hardened</td><td><span class="badge badge-pass">PASS</span></td></tr>
+      </table>
+      <h3 style="margin-top:16px;">Datasets (All Synthetic)</h3>
+      <p style="font-size:13px;">Customers (2K), Accounts (3K), Transactions (100K), Loans (642), Counterparties (500), Watchlist (60), GL (2.4K), Device Sessions (8K), Policy Docs (6/136 chunks)</p>
+    </div>
+  </div>
+  <div class="slide-num">10</div>
+</div>
+
+<!-- SLIDE 11: Summary -->
+<div class="slide" style="display:flex; flex-direction:column; justify-content:center;">
+  <h2 style="border:none; text-align:center; font-size:32px;">Thank You</h2>
+  <div class="metric-grid" style="margin: 32px 0;">
+    <div class="metric"><div class="num">85</div><div class="label">Signals Detected</div></div>
+    <div class="metric"><div class="num">100%</div><div class="label">Precision (all 4)</div></div>
+    <div class="metric"><div class="num">7</div><div class="label">Dashboard Pages</div></div>
+    <div class="metric"><div class="num">0</div><div class="label">False Positives</div></div>
+  </div>
+  <div style="text-align:center; margin-top:24px;">
+    <p style="font-size:18px; color:#1e40af; font-weight:600;">SIGNAL &rarr; EVIDENCE &rarr; FINDING &rarr; REPORT</p>
+    <p style="font-size:14px; color:#64748b; margin-top:12px;">Governed AI that explains its reasoning, cites its sources, and never acts without human approval.</p>
+    <p style="font-size:14px; color:#64748b; margin-top:8px;">Built entirely on Snowflake with Cortex Code across planning, development, execution, testing, and hardening.</p>
+    <div style="margin-top:32px;">
+      <span class="tag">Dynamic Tables</span>
+      <span class="tag">Cortex Agent</span>
+      <span class="tag">Cortex Analyst</span>
+      <span class="tag">Cortex Search</span>
+      <span class="tag">Semantic Views</span>
+      <span class="tag">Masking Policies</span>
+      <span class="tag">RBAC</span>
+      <span class="tag">Streamlit-in-Snowflake</span>
+      <span class="tag">Snowflake Tasks</span>
+      <span class="tag">Notification Integration</span>
+    </div>
+  </div>
+  <div class="slide-num">11</div>
+</div>
+
+</body>
+</html>

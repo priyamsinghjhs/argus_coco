@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Argus Risk Copilot — Demo Narration Script</title>
+  <script type="application/json" id="snowflake-report-metadata">
+  {
+    "generated": "2026-09-19",
+    "intent": "Demo video narration — 5 segments, functionality-focused, minimal SQL",
+    "sections": [
+      { "id": "seg1", "title": "Intro + Reproducibility" },
+      { "id": "seg2", "title": "Detection Pipeline via Dynamic Tables" },
+      { "id": "seg3", "title": "Cortex Agent via CoCo CLI" },
+      { "id": "seg4", "title": "Streamlit Dashboard" },
+      { "id": "seg5", "title": "RBAC + Masking + Notifications" }
+    ]
+  }
+  </script>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+      max-width: 900px; width: 100%; box-sizing: border-box;
+      margin: 0 auto; padding: clamp(16px, 4vw, 24px);
+      color: light-dark(#1f2937, #e5e7eb); line-height: 1.7;
+    }
+    h1 { color: light-dark(#0f172a, #f1f5f9); border-bottom: 3px solid light-dark(#2563eb, #3b82f6); padding-bottom: 8px; font-size: 1.8em; }
+    h2 { color: light-dark(#1e40af, #60a5fa); margin-top: 2.5em; font-size: 1.4em; }
+    h3 { color: light-dark(#374151, #d1d5db); font-size: 1.1em; margin-top: 1.5em; }
+    .segment { background: light-dark(#f0f9ff, #0c1929); border-left: 4px solid light-dark(#2563eb, #3b82f6); padding: 16px 20px; margin: 24px 0; border-radius: 0 8px 8px 0; }
+    .say { background: light-dark(#fefce8, #1a1a0a); border-left: 4px solid light-dark(#ca8a04, #eab308); padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; font-style: italic; }
+    .show { background: light-dark(#f0fdf4, #0a1f0a); border-left: 4px solid light-dark(#16a34a, #22c55e); padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+    .show::before { content: "SHOW: "; font-weight: 700; color: light-dark(#15803d, #4ade80); }
+    .cli { background: light-dark(#f5f3ff, #120a2a); border-left: 4px solid light-dark(#7c3aed, #a78bfa); padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+    .cli::before { content: "CoCo CLI: "; font-weight: 700; color: light-dark(#6d28d9, #c4b5fd); }
+    .sql { background: light-dark(#f1f5f9, #1e293b); border: 1px solid light-dark(#cbd5e1, #334155); border-radius: 6px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; white-space: pre-wrap; }
+    .transition { text-align: center; color: light-dark(#6b7280, #9ca3af); font-size: 13px; margin: 2em 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 6px; }
+    .badge-time { background: light-dark(#dbeafe, #1e3a5f); color: light-dark(#1d4ed8, #93c5fd); }
+    .badge-cli { background: light-dark(#ede9fe, #1a0a3a); color: light-dark(#6d28d9, #c4b5fd); }
+    .badge-ui { background: light-dark(#dcfce7, #0a2f1a); color: light-dark(#15803d, #86efac); }
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid light-dark(#d1d5db, #374151); padding: 5px 10px; text-align: left; }
+    th { background: light-dark(#f3f4f6, #1f2937); font-weight: 600; }
+    hr { border: none; border-top: 1px solid light-dark(#e5e7eb, #374151); margin: 2.5em 0; }
+    .toc a { text-decoration: none; color: light-dark(#2563eb, #60a5fa); }
+    .toc li { margin: 6px 0; }
+    .callout { background: light-dark(#fff7ed, #1a0f00); border: 1px solid light-dark(#fed7aa, #92400e); border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+    .callout strong { color: light-dark(#c2410c, #fb923c); }
+  </style>
+</head>
+<body>
+
+<h1>Argus Risk Copilot — Demo Video Script</h1>
+<p><strong>Duration:</strong> ~12 minutes | <strong>5 Segments</strong> | CoCo CLI + Streamlit UI</p>
+<p>An AI-governed copilot for Indian banking — fraud detection, AML compliance, credit risk, and regulatory reporting. Built entirely on Snowflake.</p>
+
+<h2>Segments</h2>
+<ol class="toc">
+  <li><a href="#seg1">Intro + Reproducibility</a> <span class="badge badge-time">~1 min</span></li>
+  <li><a href="#seg2">Detection Pipeline via Dynamic Tables</a> <span class="badge badge-time">~3 min</span> <span class="badge badge-cli">CoCo CLI</span></li>
+  <li><a href="#seg3">Cortex Agent via CoCo CLI — SIGNAL &rarr; EVIDENCE &rarr; FINDING &rarr; REPORT</a> <span class="badge badge-time">~3 min</span> <span class="badge badge-cli">CoCo CLI</span></li>
+  <li><a href="#seg4">Streamlit Dashboard — Full Workflow in UI</a> <span class="badge badge-time">~3 min</span> <span class="badge badge-ui">Streamlit</span></li>
+  <li><a href="#seg5">RBAC + Masking + Notifications + Automation</a> <span class="badge badge-time">~2 min</span> <span class="badge badge-cli">CoCo CLI</span> <span class="badge badge-ui">Streamlit</span></li>
+</ol>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2 id="seg1">Segment 1 — Intro + Reproducibility <span class="badge badge-time">~1 min</span></h2>
+<!-- ============================================================ -->
+
+<div class="say">
+"This is Argus — a governed, explainable AI copilot for banking risk. It detects fraud typologies, surfaces evidence with policy citations, drafts regulatory filings, and enforces role-based data access. Everything you see runs on a single Snowflake account — no external services."
+</div>
+
+<div class="show">
+The <code>argus/scripts/</code> folder: 13 numbered SQL scripts (00 through 12), one semantic view YAML, one agent YAML, and a Streamlit app. Everything is idempotent — run the scripts in order and the full platform deploys from scratch.
+</div>
+
+<div class="say">
+"The entire stack deploys from 13 SQL scripts. Dynamic Tables for the data pipeline, Cortex Search for policy RAG, a Semantic View for governed queries, a Cortex Agent for the intelligence layer, and a Streamlit dashboard for the UI. Let me show you what it does."
+</div>
+
+<div class="callout">
+<strong>Snowflake features used:</strong> Dynamic Tables (incremental + full refresh), Cortex Search Service, Semantic View, Cortex Analyst, Cortex Agent (6 tools), Masking Policies, 7 RBAC roles, Streamlit-in-Snowflake, SYSTEM$SEND_EMAIL, Tasks (daily digest), Stored Procedures (Python + SQL).
+</div>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2 id="seg2">Segment 2 — Detection Pipeline via Dynamic Tables <span class="badge badge-time">~3 min</span></h2>
+<!-- ============================================================ -->
+
+<div class="say">
+"The data pipeline is entirely Dynamic Tables. Raw banking data — customers, accounts, 100,000 transactions, loans, counterparties, device sessions — flows through seven conformed tables that deduplicate and standardize automatically. At the end of the chain, a signals table evaluates four fraud typologies every 15 minutes."
+</div>
+
+<div class="cli">
+<code>SHOW DYNAMIC TABLES IN DATABASE ARGUS_RISK_COPILOT;</code>
+</div>
+
+<div class="show">
+The 8 Dynamic Tables — 7 CONFORMED (incremental, DOWNSTREAM lag) feeding into 1 GOVERNANCE.SIGNALS_ALERTS (full refresh, 15-minute lag). All ACTIVE.
+</div>
+
+<h3>The Four Typologies</h3>
+
+<div class="say">
+"SIGNALS_ALERTS evaluates four risk typologies against conformed data:"
+</div>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Typology</th><th>What It Detects</th><th>Severity</th><th>Signals</th></tr></thead>
+<tbody>
+  <tr><td><strong>Structuring</strong></td><td>3+ cash deposits of INR 2.5–3.5L within 48 hrs across 2+ geos, summing just under the INR 10L reporting threshold</td><td>HIGH</td><td>19</td></tr>
+  <tr><td><strong>Money Mule</strong></td><td>Account dormant 60+ days, then burst of 10+ inbound from unrelated counterparties, rapid outbound within 24 hrs</td><td>CRITICAL</td><td>14</td></tr>
+  <tr><td><strong>Account Takeover</strong></td><td>New device login &rarr; contact change within 60 min &rarr; large transfer within 120 min</td><td>CRITICAL / HIGH</td><td>4 + 36</td></tr>
+  <tr><td><strong>Loan Stacking</strong></td><td>3+ loans disbursed within 14 days, aggregate principal &gt; INR 25L</td><td>HIGH</td><td>12</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="cli">
+<code>SELECT signal_type, severity, COUNT(*) FROM GOVERNANCE.SIGNALS_ALERTS GROUP BY 1,2 ORDER BY 1,2;</code>
+</div>
+
+<div class="show">
+Result: 85 signals total — 18 CRITICAL (4 ATO + 14 Money Mule), 67 HIGH.
+</div>
+
+<div class="say">
+"Every signal carries structured evidence — transaction IDs, amounts, geolocations, counterparty details, and the policy section that defines the typology. Nothing is a black box. Let me show you one."
+</div>
+
+<div class="cli">
+Pick a CRITICAL money mule signal and show the <code>evidence_json</code> — 12 inbound from 12 distinct senders across 7 countries, 2 outbound RTGS debits, policy ref: AML Policy Manual, Section 4.3.
+</div>
+
+<div class="say">
+"Now let me ask Cortex Analyst the same question through the semantic view."
+</div>
+
+<div class="cli">
+<code>cortex analyst query "How many critical severity signals are open and which typologies?" --view=ARGUS_RISK_COPILOT.SEMANTIC.ARGUS_COPILOT_SV</code>
+</div>
+
+<div class="show">
+Cortex Analyst generates a SEMANTIC_VIEW query. Result: ACCOUNT_TAKEOVER: 4, MONEY_MULE: 14.
+</div>
+
+<p class="transition">— transition to CoCo CLI agent demo —</p>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2 id="seg3">Segment 3 — Cortex Agent via CoCo CLI <span class="badge badge-time">~3 min</span></h2>
+<p style="margin-top: -0.5em;">SIGNAL &rarr; EVIDENCE &rarr; FINDING &rarr; REPORT</p>
+<!-- ============================================================ -->
+
+<div class="say">
+"The Argus agent has six tools — a data analyst backed by the semantic view, a policy search engine over six regulatory documents, case management, finding drafts, audit logging, and notification dispatch. Let me walk through a real investigation."
+</div>
+
+<h3>Step 1 — SIGNAL: Pick the alert</h3>
+
+<div class="cli">
+Query the top CRITICAL money mule signal. Show: Customer 318, Account 2511, confidence 0.90.
+</div>
+
+<div class="say">
+"Customer 318's account was dormant for 60 days, then received 12 inbound NEFT credits totaling INR 19.2 lakh from 12 unrelated counterparties across seven countries — Sri Lanka, Bangladesh, Pakistan, Nigeria, Singapore, Germany, and the US. Two RTGS debits of INR 5.96 lakh each followed within 10 hours."
+</div>
+
+<h3>Step 2 — EVIDENCE: Transactions + Policy</h3>
+
+<div class="cli">
+Show the 14 evidence transactions — 12 inbound NEFT credits with counterparty names and countries, then 2 outbound RTGS debits highlighted in red.
+</div>
+
+<div class="cli">
+Search the policy engine: <code>"What are the money mule indicators under AML policy?"</code><br/>
+Result: AML Policy Manual, Section 4.3 — <em>"Account dormant 60+ days... 10+ inbound from unrelated counterparties within 48 hours... rapid outbound within 24 hours... CRITICAL severity."</em>
+</div>
+
+<div class="say">
+"All three indicators confirmed. The agent cites the exact policy section — Section 4.3. Now let's create a case."
+</div>
+
+<h3>Step 3 — Open Case</h3>
+
+<div class="cli">
+<code>CALL GOVERNANCE.UPSERT_CASE(..., 'MONEY_MULE', 318, 'OPEN', 'P1', 'Priya Sharma', 'COMPLIANCE_OFFICER')</code><br/>
+Result: <strong>CASE-88457432</strong> created, status OPEN, priority P1.
+</div>
+
+<h3>Step 4 — FINDING: Draft the STR</h3>
+
+<div class="cli">
+<code>CALL GOVERNANCE.DRAFT_FINDING_REPORT('CASE-88457432', 'STR', ...)</code> with:<br/>
+&bull; Full narrative referencing all 14 transaction IDs<br/>
+&bull; Evidence summary: inbound TXN 200216–200227, outbound TXN 200228–200229<br/>
+&bull; Policy citations: AML Section 4.3, RBI Master Direction Section 3.2, STR Template Section B.2<br/>
+&bull; Confidence: 0.90<br/>
+Result: <strong>RPT-11358555</strong> created, status DRAFT.
+</div>
+
+<div class="say">
+"The draft is created with a full evidence chain and three policy citations. But it's marked DRAFT — nothing goes to FIU-IND without a human approving it. That's the human-in-the-loop principle."
+</div>
+
+<h3>Step 5 — REPORT: Approve + Close</h3>
+
+<div class="cli">
+<code>CALL GOVERNANCE.APPROVE_REPORT('RPT-11358555', 'APPROVE')</code><br/>
+Result: Status &rarr; APPROVED, approved_by &rarr; PRIYAMSINGHJHS.
+</div>
+
+<div class="cli">
+Close the case: <code>UPSERT_CASE(..., 'CLOSED_CONFIRMED')</code><br/>
+Result: Resolution &rarr; STR_FILED. Notification dispatched.
+</div>
+
+<div class="say">
+"Case closed. STR filed. Every step — from signal detection to case closure — is recorded in the audit trail with reviewer name, role, timestamp, and comment."
+</div>
+
+<div class="show">
+The 4-row audit trail: STATUS_CHANGE (OPEN &rarr; UNDER_REVIEW) &rarr; ESCALATION &rarr; REPORT_APPROVED &rarr; CLOSURE.
+</div>
+
+<p class="transition">— transition to Streamlit dashboard —</p>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2 id="seg4">Segment 4 — Streamlit Dashboard <span class="badge badge-time">~3 min</span></h2>
+<!-- ============================================================ -->
+
+<div class="say">
+"Everything we just did in the CLI can also be done through the Streamlit dashboard. It's role-aware — each role sees only the pages and data they're authorized for."
+</div>
+
+<h3>Page 1 — Alert Queue</h3>
+
+<div class="show">
+Open the dashboard. Show the Alert Queue filtered to CRITICAL + HIGH. Metrics at top: 85 Total Alerts, 18 Critical, Open Cases count, Avg Confidence. Sortable table with signal_id, typology, severity, confidence, case status.
+</div>
+
+<div class="say">
+"This is the analyst's inbox. Filterable by typology and severity. Every alert links to a case."
+</div>
+
+<h3>Page 2 — Case Detail (the core workflow)</h3>
+
+<div class="show">
+Select a case that has NO findings yet. Show three tabs: Evidence Timeline, Finding, Actions.
+</div>
+
+<div class="say">
+"The Evidence Timeline tab shows the raw signal JSON — every transaction ID, counterparty, and geolocation. The Finding tab is empty. Watch what happens when I click 'Ask Argus to Draft Finding'."
+</div>
+
+<div class="show">
+Click <strong>"Ask Argus to Draft Finding"</strong>. Spinner: "Argus is gathering evidence..." Then the <strong>Review Draft Finding</strong> panel appears with:
+<ul style="margin: 8px 0 8px 20px;">
+  <li>Editable <strong>Narrative</strong> (pre-filled by the agent with transaction IDs, amounts, policy citations)</li>
+  <li>Editable <strong>Policy Citations</strong> (auto-retrieved from Cortex Search)</li>
+  <li>Editable <strong>Evidence Summary</strong></li>
+  <li><strong>Confidence slider</strong> (pre-set from the signal)</li>
+  <li><strong>Report Type</strong> auto-defaulted (MONEY_MULE &rarr; STR)</li>
+</ul>
+</div>
+
+<div class="say">
+"Argus drafted the narrative, retrieved the policy citations, and parsed the evidence — but nothing is saved yet. The reviewer can edit any field. Only when they click 'Submit Finding and Draft Report' does it write to the database."
+</div>
+
+<div class="show">
+Click <strong>"Submit Finding & Draft Report"</strong>. Success message. The Finding tab now shows the finding with narrative and policy ref. The Draft Reports table shows the report as DRAFT.
+</div>
+
+<h3>Page 3 — Regulatory Reporting</h3>
+
+<div class="show">
+Navigate to Regulatory Reporting &rarr; Draft Filings Queue. Show the draft report. Select it — narrative, evidence, citations displayed. Click <strong>"Approve Filing"</strong>.
+</div>
+
+<div class="say">
+"The Compliance Officer reviews the full draft — narrative, evidence chain, policy citations, confidence score — then approves. The status changes to APPROVED, the approver's name and timestamp are recorded."
+</div>
+
+<h3>Page 4 — Ask Argus (Chat)</h3>
+
+<div class="show">
+Type: <em>"Show me the top 5 customers by transaction volume who also have a CRITICAL signal"</em>. Argus responds with data from the semantic view + policy context.
+</div>
+
+<div class="say">
+"Ask Argus is a chat interface that routes every question through the semantic view and policy search. Quick-action buttons — View Transactions, Draft Finding, Escalate — are one click away."
+</div>
+
+<h3>Page 5 — Liquidity & Credit</h3>
+
+<div class="show">
+Show the LCR Proxy Trend chart, NPA/DPD Buckets bar chart (CURRENT, SMA-0/1/2, SUB-STANDARD, DOUBTFUL), and Early Warning Borrowers table (bureau score drops &ge; 50).
+</div>
+
+<div class="say">
+"Credit and liquidity risk are monitored alongside fraud. The LCR ratio is computed from the General Ledger. NPA classification follows RBI's DPD buckets. Early warning flags any borrower with a bureau score drop of 50 or more."
+</div>
+
+<h3>Page 6 — Audit Log</h3>
+
+<div class="show">
+Show the Question Log (searchable) and Reviewer Actions History. Every agent question, every status change, every approval is recorded.
+</div>
+
+<p class="transition">— transition to RBAC + masking —</p>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2 id="seg5">Segment 5 — RBAC + Masking + Notifications <span class="badge badge-time">~2 min</span></h2>
+<!-- ============================================================ -->
+
+<div class="say">
+"Argus enforces data governance through seven functional roles and five masking policies. The same query on the same table returns different data depending on who's asking."
+</div>
+
+<h3>Masking Demo — Side by Side</h3>
+
+<div class="cli">
+Run the same query as two different roles:
+</div>
+
+<div class="sql">-- As COMPLIANCE_OFFICER (sees full PII)
+USE ROLE COMPLIANCE_OFFICER;
+SELECT customer_id, name, email, phone FROM CONFORMED.CUSTOMERS_CLEAN LIMIT 3;
+
+-- As FRAUD_ANALYST (PII masked, device_id visible)
+USE ROLE FRAUD_ANALYST;
+SELECT customer_id, name, email, phone FROM CONFORMED.CUSTOMERS_CLEAN LIMIT 3;</div>
+
+<div class="show">
+Side-by-side comparison:
+</div>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>COMPLIANCE_OFFICER</th><th>FRAUD_ANALYST</th></tr></thead>
+<tbody>
+  <tr><td><strong>Name</strong></td><td>Sakshi Gupta</td><td>***MASKED***</td></tr>
+  <tr><td><strong>Email</strong></td><td>sakshi.gupta352@hotmail.com</td><td>****@hotmail.com</td></tr>
+  <tr><td><strong>Phone</strong></td><td>+918166753974</td><td>+91XXXXX3974</td></tr>
+  <tr><td><strong>Device ID</strong></td><td>DEV-ABCD1234</td><td>DEV-ABCD1234 (unmasked for investigations)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="say">
+"Compliance Officers and Auditors see full PII. Fraud Analysts see masked names, emails, phones, and addresses — but they keep device ID access because they need it for account takeover investigations. Branch Users see everything masked."
+</div>
+
+<h3>Role-Based Dashboard Access</h3>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Role</th><th>Dashboard Pages</th></tr></thead>
+<tbody>
+  <tr><td>COMPLIANCE_OFFICER</td><td>Ask Argus, Alert Queue, Case Detail, Liquidity, Regulatory Reporting, Audit Log</td></tr>
+  <tr><td>FRAUD_ANALYST</td><td>Ask Argus, Alert Queue, Case Detail, Audit Log</td></tr>
+  <tr><td>CREDIT_ANALYST</td><td>Ask Argus, Liquidity & Credit, Audit Log</td></tr>
+  <tr><td>TREASURY_ANALYST</td><td>Liquidity & Credit (GL + Accounts only)</td></tr>
+  <tr><td>AUDITOR</td><td>All pages (read-only — no update buttons)</td></tr>
+  <tr><td>BRANCH_USER</td><td>Ask Argus only</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Notifications</h3>
+
+<div class="say">
+"Argus dispatches notifications across five channels — Email is live via Snowflake's SYSTEM$SEND_EMAIL, with Slack, SMS, Teams, and Jira as extension points. Each channel is configurable per loop stage and severity threshold."
+</div>
+
+<div class="show">
+Streamlit Integrations page: Email Recipients panel, Channel Configuration with toggle switches per channel/stage, Notification Dispatch Log showing recent emails sent.
+</div>
+
+<div class="say">
+"A daily digest task runs at 8 AM IST, counting open signals and emailing a summary. Every case escalation and report approval also triggers a notification. The dispatch log shows the full history."
+</div>
+
+<div class="show">
+Notification Log: DAILY_DIGEST (SENT), CASE_ESCALATED (SENT), REPORT_APPROVED (SENT).
+</div>
+
+<hr />
+
+<!-- ============================================================ -->
+<h2>Closing</h2>
+<!-- ============================================================ -->
+
+<div class="say">
+"That's Argus Risk Copilot. Dynamic Tables detect the signals. Cortex Search provides the policy context. Cortex Analyst answers questions through a governed semantic view. The Cortex Agent orchestrates the full SIGNAL &rarr; EVIDENCE &rarr; FINDING &rarr; REPORT loop. Masking policies enforce who sees what. And every action — from detection to filing — has an audit trail."
+</div>
+
+<div class="say">
+"It's 13 SQL scripts, one YAML agent, one semantic view, and one Streamlit app. All on Snowflake. All reproducible. Thank you."
+</div>
+
+<div class="callout">
+<strong>Snowflake capabilities demonstrated:</strong>
+<ul style="margin: 4px 0; padding-left: 20px;">
+  <li>Dynamic Tables (incremental + full refresh, DOWNSTREAM lag)</li>
+  <li>Cortex Search Service (hybrid semantic + keyword RAG over policy docs)</li>
+  <li>Semantic View (11 tables, 8 metrics, governed query interface)</li>
+  <li>Cortex Analyst (natural language &rarr; SQL via semantic view)</li>
+  <li>Cortex Agent (6 tools: data analyst, policy search, case mgmt, finding drafts, audit log, notifications)</li>
+  <li>Cortex Complete (LLM fallback for narrative generation)</li>
+  <li>Masking Policies (5 policies across 4 dynamic tables)</li>
+  <li>RBAC (7 functional roles with schema + table + UI page gating)</li>
+  <li>Streamlit-in-Snowflake (7-page role-aware dashboard)</li>
+  <li>Notification Integration (SYSTEM$SEND_EMAIL + 4 extension channels)</li>
+  <li>Tasks (daily digest at 8 AM IST)</li>
+  <li>Stored Procedures (SQL + Python, EXECUTE AS CALLER)</li>
+</ul>
+</div>
+
+<p style="text-align: center; margin-top: 2em; color: light-dark(#6b7280, #9ca3af); font-size: 12px;">
+  Argus Risk Copilot | ARGUS_RISK_COPILOT on IF58924 | Generated by Cortex Code | 2026-09-19
+</p>
+
+</body>
+</html>

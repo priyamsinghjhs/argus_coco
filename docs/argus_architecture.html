@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Argus Risk Copilot — Architecture</title>
+  <style>
+    @page { size: A4 landscape; margin: 12mm; }
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      color: #1e293b; background: #ffffff;
+      max-width: 1140px; width: 100%; margin: 0 auto;
+      padding: 40px 48px;
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 36px; }
+    .header h1 { font-size: 32px; color: #0f172a; letter-spacing: -0.5px; }
+    .header p  { font-size: 14px; color: #64748b; margin-top: 6px; }
+
+    /* ── Section titles ── */
+    h2 {
+      font-size: 18px; color: #1e40af; text-transform: uppercase;
+      letter-spacing: 1.2px; margin: 36px 0 16px;
+      padding-bottom: 6px; border-bottom: 2px solid #3b82f6;
+    }
+
+    /* ── Mermaid container ── */
+    .diagram-wrap {
+      width: 100%; overflow-x: auto; margin: 20px 0;
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 24px 16px;
+    }
+    .diagram-wrap pre.mermaid { text-align: center; }
+
+    /* ── Layer cards ── */
+    .layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+    .layer-card {
+      border: 1px solid #e2e8f0; border-radius: 10px;
+      padding: 18px 20px; background: #fff;
+      border-top: 4px solid #3b82f6;
+    }
+    .layer-card.green  { border-top-color: #22c55e; }
+    .layer-card.amber  { border-top-color: #f59e0b; }
+    .layer-card.red    { border-top-color: #ef4444; }
+    .layer-card.purple { border-top-color: #8b5cf6; }
+    .layer-card h3 { font-size: 15px; color: #0f172a; margin-bottom: 8px; }
+    .layer-card ul { margin-left: 16px; font-size: 13px; line-height: 1.7; color: #334155; }
+    .layer-card .count { font-size: 24px; font-weight: 700; color: #1e40af; }
+    .layer-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Metric strip ── */
+    .metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 24px 0; }
+    .m-box {
+      text-align: center; background: #f1f5f9;
+      border-radius: 8px; padding: 14px 8px;
+    }
+    .m-box .num { font-size: 26px; font-weight: 700; color: #1e40af; }
+    .m-box .lbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* ── Pipeline flow (text) ── */
+    .flow-strip {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin: 24px 0; flex-wrap: wrap;
+    }
+    .flow-step {
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 8px; padding: 10px 18px;
+      font-size: 13px; font-weight: 600; color: #1e40af;
+      text-align: center; white-space: nowrap;
+    }
+    .flow-arrow { font-size: 20px; color: #94a3b8; padding: 0 6px; }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #f1f5f9; font-weight: 600; text-align: left; padding: 8px 10px; border: 1px solid #e2e8f0; }
+    td { padding: 7px 10px; border: 1px solid #e2e8f0; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════
+     HEADER
+     ════════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>ARGUS Risk Copilot — System Architecture</h1>
+  <p>Governed, Explainable AI for Banking Fraud Detection, AML Compliance &amp; Regulatory Reporting</p>
+  <p style="margin-top:4px; font-size:12px; color:#94a3b8;">Built entirely on Snowflake &middot; All data synthetic &middot; Indian banking regulatory context (RBI / PMLA / FIU-IND)</p>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     KEY METRICS
+     ════════════════════════════════════════════════════════════════ -->
+<div class="metrics">
+  <div class="m-box"><div class="num">117K+</div><div class="lbl">Source Rows</div></div>
+  <div class="m-box"><div class="num">8</div><div class="lbl">Dynamic Tables</div></div>
+  <div class="m-box"><div class="num">85</div><div class="lbl">Signals Detected</div></div>
+  <div class="m-box"><div class="num">100%</div><div class="lbl">Precision</div></div>
+  <div class="m-box"><div class="num">6</div><div class="lbl">Agent Tools</div></div>
+  <div class="m-box"><div class="num">7</div><div class="lbl">RBAC Roles</div></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     END-TO-END DATA FLOW (Mermaid)
+     ════════════════════════════════════════════════════════════════ -->
+<h2>End-to-End Data Flow</h2>
+<div class="diagram-wrap">
+  <pre class="mermaid">
+flowchart LR
+    subgraph RAW["RAW Layer — 8 Tables"]
+        direction TB
+        R1[Customers\n2K rows]
+        R2[Accounts\n3K rows]
+        R3[Transactions\n100K rows]
+        R4[Loans\n642 rows]
+        R5[Counterparties\n500 rows]
+        R6[Watchlist\n60 rows]
+        R7[GL Entries\n2.4K rows]
+        R8[Device Sessions\n8K rows]
+    end
+
+    subgraph CONF["CONFORMED Layer — 7 Incremental DTs"]
+        direction TB
+        C1[DIM_CUSTOMERS]
+        C2[DIM_ACCOUNTS]
+        C3[FACT_TRANSACTIONS]
+        C4[FACT_LOANS]
+        C5[DIM_COUNTERPARTIES]
+        C6[REF_WATCHLIST]
+        C7[FACT_GL_ENTRIES]
+    end
+
+    subgraph GOV["GOVERNANCE Layer"]
+        direction TB
+        SIG["SIGNALS_ALERTS\n85 signals\nFull refresh · 15-min lag"]
+        CASES[Cases · Findings\nReviewer Actions]
+        RPT[Findings Reports\nAPPROVE_REPORT proc]
+    end
+
+    RAW -->|Incremental\nDOWNSTREAM lag| CONF
+    CONF -->|4 Typology Rules| SIG
+    SIG --> CASES
+    CASES --> RPT
+  </pre>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     GOVERNANCE LOOP
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Governance Loop</h2>
+<div class="flow-strip">
+  <div class="flow-step">SIGNAL<br><span style="font-weight:400;font-size:11px;">Auto-detected by DT rules</span></div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-step">EVIDENCE<br><span style="font-weight:400;font-size:11px;">Agent gathers via Analyst + Search</span></div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-step">FINDING<br><span style="font-weight:400;font-size:11px;">Drafted with confidence score</span></div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-step">REPORT<br><span style="font-weight:400;font-size:11px;">Human-approved filing</span></div>
+  <span class="flow-arrow">&#10132;</span>
+  <div class="flow-step" style="background:#dcfce7;border-color:#86efac;color:#166534;">NOTIFY<br><span style="font-weight:400;font-size:11px;">Email / Slack / SMS / Teams / Jira</span></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     AI LAYER (Mermaid)
+     ════════════════════════════════════════════════════════════════ -->
+<h2>AI Layer — Cortex Agent</h2>
+<div class="diagram-wrap">
+  <pre class="mermaid">
+flowchart TB
+    USER["Streamlit Dashboard\n7 pages · role-gated"] -->|DATA_AGENT_RUN| AGENT["Cortex Agent\nARGUS_COPILOT"]
+
+    AGENT --> T1["argus_data_analyst\nCortex Analyst"]
+    AGENT --> T2["policy_search\nCortex Search"]
+    AGENT --> T3["create_update_case\nCase Management"]
+    AGENT --> T4["draft_finding_report\nFinding Drafts"]
+    AGENT --> T5["log_question\nAudit Trail"]
+    AGENT --> T6["notify_state_change\nNotifications"]
+
+    T1 --> SV["Semantic View\n11 tables · 8 metrics\n5 verified queries"]
+    T2 --> CS["Policy Search Service\n136 chunks · 6 docs"]
+    T3 --> DB["GOVERNANCE Schema\nCases · Findings · Actions"]
+    T4 --> DB
+    T5 --> DB
+    T6 --> NF["Notification Dispatcher\nEmail live · 4 stubs"]
+  </pre>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCHEMA & LAYER DETAIL
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Database Schema Layout</h2>
+<div class="layers">
+  <div class="layer-card">
+    <h3>RAW</h3>
+    <div class="count">8</div><div class="label">tables</div>
+    <ul>
+      <li>CUSTOMERS (2,000)</li>
+      <li>ACCOUNTS (3,000)</li>
+      <li>TRANSACTIONS (100,000)</li>
+      <li>LOANS (642)</li>
+      <li>COUNTERPARTIES (500)</li>
+      <li>WATCHLIST_ENTRIES (60)</li>
+      <li>GL_DAILY_BALANCES (2,400)</li>
+      <li>DEVICE_SESSION_LOGS (8,000)</li>
+    </ul>
+  </div>
+
+  <div class="layer-card green">
+    <h3>CONFORMED</h3>
+    <div class="count">7</div><div class="label">dynamic tables (incremental)</div>
+    <ul>
+      <li>DIM_CUSTOMERS</li>
+      <li>DIM_ACCOUNTS</li>
+      <li>FACT_TRANSACTIONS</li>
+      <li>FACT_LOANS</li>
+      <li>DIM_COUNTERPARTIES</li>
+      <li>REF_WATCHLIST</li>
+      <li>FACT_GL_ENTRIES</li>
+    </ul>
+  </div>
+
+  <div class="layer-card amber">
+    <h3>GOVERNANCE</h3>
+    <div class="count">1</div><div class="label">DT (full refresh) + tables + procs</div>
+    <ul>
+      <li>SIGNALS_ALERTS (DT, 85 rows)</li>
+      <li>CASES &middot; FINDINGS</li>
+      <li>FINDINGS_REPORTS</li>
+      <li>REVIEWER_ACTIONS</li>
+      <li>NOTIFICATION_LOG / CONFIG</li>
+      <li>QUESTION_LOG</li>
+      <li>APPROVE_REPORT proc</li>
+      <li>DISPATCH_NOTIFICATION proc</li>
+    </ul>
+  </div>
+
+  <div class="layer-card purple">
+    <h3>UNSTRUCTURED</h3>
+    <div class="count">136</div><div class="label">policy chunks</div>
+    <ul>
+      <li>POLICY_DOCUMENTS (136 rows)</li>
+      <li>REFERENCE_DOCUMENTS (6 docs)</li>
+      <li>POLICY_SEARCH_SVC (Cortex Search)</li>
+    </ul>
+  </div>
+
+  <div class="layer-card">
+    <h3>SEMANTIC</h3>
+    <div class="count">11</div><div class="label">logical tables in view</div>
+    <ul>
+      <li>ARGUS_COPILOT_SV</li>
+      <li>9 relationships</li>
+      <li>34 dimensions · 8 facts · 8 metrics</li>
+      <li>5 verified queries</li>
+    </ul>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     DETECTION ENGINE
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Detection Engine — 4 Typologies</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th style="width:18%">Typology</th><th style="width:38%">Rule Logic</th><th style="width:9%">Count</th><th style="width:10%">Precision</th><th style="width:10%">Recall</th><th style="width:15%">Severity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Structuring</strong></td>
+        <td>3+ cash deposits INR 2.5–3.5L within 48 hrs, 2+ geos, total near 10L</td>
+        <td>19</td><td>100%</td><td>76%</td><td>HIGH</td>
+      </tr>
+      <tr>
+        <td><strong>Money Mule</strong></td>
+        <td>60+ day dormancy, 10+ inbound from distinct senders, rapid outbound</td>
+        <td>14</td><td>100%</td><td>93%</td><td>CRITICAL</td>
+      </tr>
+      <tr>
+        <td><strong>Account Takeover</strong></td>
+        <td>New device + contact/password change; strict tier adds high-value debit</td>
+        <td>40</td><td>100%</td><td>100%</td><td>CRITICAL / HIGH</td>
+      </tr>
+      <tr>
+        <td><strong>Loan Stacking</strong></td>
+        <td>3+ loans in 14-day window, total principal &gt; 25L</td>
+        <td>12</td><td>100%</td><td>100%</td><td>HIGH</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SECURITY LAYER
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Security &amp; Access Control</h2>
+<div class="diagram-wrap">
+  <pre class="mermaid">
+flowchart LR
+    subgraph ROLES["7 RBAC Roles"]
+        PA[PLATFORM_ADMIN\nAll pages · Full PII]
+        CO[COMPLIANCE_OFFICER\n6 pages · Full PII]
+        FA[FRAUD_ANALYST\n4 pages · Masked PII]
+        CA[CREDIT_ANALYST\n3 pages · Masked PII]
+        TA[TREASURY_ANALYST\n1 page · Masked PII]
+        AU[AUDITOR\n5 pages · Full PII]
+        BU[BRANCH_USER\n1 page · Masked PII]
+    end
+
+    subgraph MASK["5 Masking Policies"]
+        M1[MASK_NAME]
+        M2[MASK_EMAIL]
+        M3[MASK_PHONE]
+        M4[MASK_ADDRESS]
+        M5[MASK_DEVICE_ID]
+    end
+
+    ROLES -->|CURRENT_ROLE check| MASK
+    MASK -->|Plaintext or ***MASKED***| DATA[Conformed Tables]
+  </pre>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     NOTIFICATION CHANNELS
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Notification &amp; Automation</h2>
+<div class="layers" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+  <div class="layer-card green">
+    <h3>Email</h3>
+    <div style="font-size:13px;color:#166534;font-weight:600;">LIVE</div>
+    <ul><li>3 dispatches confirmed</li><li>ARGUS_EMAIL_INTEGRATION</li></ul>
+  </div>
+  <div class="layer-card">
+    <h3>Slack</h3>
+    <div style="font-size:13px;color:#92400e;font-weight:600;">STUB</div>
+    <ul><li>Webhook config ready</li></ul>
+  </div>
+  <div class="layer-card">
+    <h3>SMS</h3>
+    <div style="font-size:13px;color:#92400e;font-weight:600;">STUB</div>
+    <ul><li>Twilio extension point</li></ul>
+  </div>
+  <div class="layer-card">
+    <h3>Teams</h3>
+    <div style="font-size:13px;color:#92400e;font-weight:600;">STUB</div>
+    <ul><li>Webhook config ready</li></ul>
+  </div>
+  <div class="layer-card">
+    <h3>Jira</h3>
+    <div style="font-size:13px;color:#92400e;font-weight:600;">STUB</div>
+    <ul><li>Project/issue config ready</li></ul>
+  </div>
+</div>
+<div style="margin-top:12px; padding:12px 16px; background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 8px 8px 0; font-size:13px;">
+  <strong>DAILY_SIGNAL_DIGEST</strong> — CRON 0 8 * * * Asia/Kolkata &middot; HTML digest of open signals &middot; 2 consecutive successful runs verified
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     DEPLOYMENT — 13 SCRIPTS
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Deployment — 13 Idempotent Scripts</h2>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:6%">#</th><th style="width:28%">Script</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>00</td><td>setup.sql</td><td>Database ARGUS_RISK_COPILOT + 5 schemas (RAW, CONFORMED, GOVERNANCE, UNSTRUCTURED, SEMANTIC)</td></tr>
+      <tr><td>01</td><td>raw_tables.sql</td><td>8 table DDLs with constraints</td></tr>
+      <tr><td>02</td><td>synthetic_data.sql</td><td>117K+ rows via GENERATOR() — TRUNCATE-before-INSERT idempotent</td></tr>
+      <tr><td>03</td><td>ground_truth_injection.sql</td><td>Inject 4 typology patterns (25 structuring, 15 mule, 20 ATO, 12 loan stacking)</td></tr>
+      <tr><td>04</td><td>unstructured_docs.sql</td><td>6 RBI/PMLA policy documents &rarr; 136 chunks</td></tr>
+      <tr><td>05</td><td>conformed_dts.sql</td><td>7 incremental Dynamic Tables with DOWNSTREAM lag</td></tr>
+      <tr><td>06</td><td>signals_pipeline.sql</td><td>SIGNALS_ALERTS DT — 4 typology detection rules, full refresh, 15-min lag</td></tr>
+      <tr><td>07</td><td>rbac_masking.sql</td><td>7 roles + 5 masking policies (CURRENT_ROLE) + grants</td></tr>
+      <tr><td>08</td><td>semantic_view.sql</td><td>Semantic View: 11 tables, 34 dims, 8 facts, 8 metrics, 5 verified queries</td></tr>
+      <tr><td>09</td><td>policy_search.sql</td><td>Cortex Search service over POLICY_DOCUMENTS</td></tr>
+      <tr><td>10</td><td>agent.sql</td><td>Cortex Agent YAML + LOG_QUESTION + UPSERT_CASE + DRAFT_FINDING_REPORT procs</td></tr>
+      <tr><td>11</td><td>streamlit.sql</td><td>7-page Streamlit dashboard deployed to GOVERNANCE.STREAMLIT_STAGE</td></tr>
+      <tr><td>12</td><td>notifications.sql</td><td>Email integration + DISPATCH_NOTIFICATION + NOTIFY_STATE_CHANGE + daily digest task</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     TECH STACK
+     ════════════════════════════════════════════════════════════════ -->
+<h2>Technology Stack</h2>
+<div class="layers" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+  <div class="layer-card">
+    <h3>Compute</h3>
+    <ul>
+      <li>Dynamic Tables (incremental + full)</li>
+      <li>Snowflake Tasks (CRON)</li>
+      <li>Stored Procedures (SQL + Python)</li>
+    </ul>
+  </div>
+  <div class="layer-card green">
+    <h3>AI / ML</h3>
+    <ul>
+      <li>Cortex Agent (6 tools)</li>
+      <li>Cortex Analyst (Semantic View)</li>
+      <li>Cortex Search (vector search)</li>
+    </ul>
+  </div>
+  <div class="layer-card purple">
+    <h3>Governance</h3>
+    <ul>
+      <li>7 RBAC roles</li>
+      <li>5 column-level masking policies</li>
+      <li>EXECUTE AS OWNER approval gate</li>
+    </ul>
+  </div>
+  <div class="layer-card amber">
+    <h3>Presentation</h3>
+    <ul>
+      <li>Streamlit-in-Snowflake (7 pages)</li>
+      <li>Email notification integration</li>
+      <li>Cortex Code (full lifecycle)</li>
+    </ul>
+  </div>
+</div>
+
+
+<div class="footer">
+  ARGUS Risk Copilot &middot; Built with Cortex Code on Snowflake &middot; 100% Synthetic Data &middot; Hackathon Submission
+</div>
+
+<script src="/libs/mermaid@10.9.6/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'strict',
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#dbeafe',
+      primaryTextColor: '#1e293b',
+      primaryBorderColor: '#93c5fd',
+      lineColor: '#64748b',
+      secondaryColor: '#f1f5f9',
+      tertiaryColor: '#eff6ff',
+      fontFamily: '-apple-system, Segoe UI, system-ui, sans-serif',
+      fontSize: '13px'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 30,
+      rankSpacing: 40
+    }
+  });
+</script>
+
+</body>
+</html>

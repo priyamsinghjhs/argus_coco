@@ -1,0 +1,11 @@
+manifest_version: 1
+
+artifacts:
+  default_streamlit: governance.argus_dashboard
+  setup_script: setup.sql
+
+privileges:
+  - CREATE DATABASE:
+      description: "Required to create application schemas and objects"
+
+references: []

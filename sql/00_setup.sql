@@ -1,0 +1,24 @@
+-- ============================================================
+-- 00_setup.sql  —  Database, Schemas, Warehouse
+-- Idempotent: safe to re-run on any account
+-- ============================================================
+
+USE ROLE ACCOUNTADMIN;
+
+CREATE DATABASE IF NOT EXISTS ARGUS_RISK_COPILOT;
+USE DATABASE ARGUS_RISK_COPILOT;
+
+CREATE SCHEMA IF NOT EXISTS RAW;
+CREATE SCHEMA IF NOT EXISTS CONFORMED;
+CREATE SCHEMA IF NOT EXISTS GOVERNANCE;
+CREATE SCHEMA IF NOT EXISTS UNSTRUCTURED;
+CREATE SCHEMA IF NOT EXISTS SEMANTIC;
+
+-- Ensure a warehouse exists for DT refreshes and queries
+CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH
+  WAREHOUSE_SIZE = 'XSMALL'
+  AUTO_SUSPEND = 120
+  AUTO_RESUME = TRUE
+  INITIALLY_SUSPENDED = FALSE;
+
+USE WAREHOUSE COMPUTE_WH;

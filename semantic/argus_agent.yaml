@@ -1,0 +1,262 @@
+tools:
+  - tool_spec:
+      type: cortex_analyst_text_to_sql
+      name: argus_data_analyst
+      description: >
+        Query structured banking data: transactions, accounts, customers, counterparties,
+        loans, general ledger, device sessions, signals/alerts, cases, findings, and reviewer
+        actions. Use for any quantitative question: transaction volumes, alert counts by
+        typology, NPA ratios, DPD buckets, liquidity ratio, bureau score drops, case status
+        distributions, and reviewer override rates. Always cite the exact rows returned.
+
+  - tool_spec:
+      type: cortex_search
+      name: policy_search
+      description: >
+        Search banking policy and regulatory documents: AML Policy Manual, Liquidity Policy
+        (LCR/NSFR), RBI Master Direction on CTR/STR, STR Narrative Template, Credit Risk
+        Policy, and ATO Response Procedure. Use whenever a question involves regulatory
+        thresholds, compliance definitions, typology indicators, filing requirements, or
+        policy-cited evidence. Always cite the section_ref returned (e.g. 'AML Policy
+        Manual, Section 4.2').
+
+  - tool_spec:
+      type: generic
+      name: create_update_case
+      description: >
+        Create or update a case in the GOVERNANCE.CASES table. Use when a signal needs
+        investigation, or to update a case status (OPEN, UNDER_REVIEW, ESCALATED,
+        CLOSED_CONFIRMED, CLOSED_FALSE_POS). Always confirm state changes with the user.
+      input_schema:
+        type: object
+        properties:
+          signal_id:
+            type: string
+            description: The signal_id from SIGNALS_ALERTS that triggered this case
+          signal_type:
+            type: string
+            description: "STRUCTURING, MONEY_MULE, ACCOUNT_TAKEOVER, or LOAN_STACKING"
+          customer_id:
+            type: number
+            description: The customer_id associated with the signal
+          status:
+            type: string
+            description: "Case status: OPEN, UNDER_REVIEW, ESCALATED, CLOSED_CONFIRMED, CLOSED_FALSE_POS"
+          priority:
+            type: string
+            description: "P1 for CRITICAL severity, P2 for HIGH"
+          assigned_to:
+            type: string
+            description: Name of the officer to assign the case to
+          assigned_role:
+            type: string
+            description: "COMPLIANCE_OFFICER, FRAUD_ANALYST, or CREDIT_ANALYST"
+        required:
+          - signal_id
+          - signal_type
+          - status
+          - priority
+
+  - tool_spec:
+      type: generic
+      name: draft_finding_report
+      description: >
+        Draft a finding or regulatory report (STR, escalation memo, credit review) into
+        GOVERNANCE.FINDINGS_REPORTS with status DRAFT. The draft MUST include evidence
+        references and policy citations. All drafts require explicit human reviewer approval
+        before they become final -- this tool only creates drafts.
+      input_schema:
+        type: object
+        properties:
+          case_id:
+            type: string
+            description: The case_id this finding belongs to
+          report_type:
+            type: string
+            description: "STR, ESCALATION_MEMO, CREDIT_REVIEW, ATO_INCIDENT, or GENERAL"
+          title:
+            type: string
+            description: Short descriptive title for the report
+          narrative:
+            type: string
+            description: Detailed finding narrative with chronological evidence
+          evidence_summary:
+            type: string
+            description: List of transaction IDs, session IDs, and data references
+          policy_citations:
+            type: string
+            description: "Cited policy sections (e.g. 'AML Policy Manual, Section 4.2')"
+          confidence:
+            type: number
+            description: "Confidence score 0.0-1.0"
+          typology:
+            type: string
+            description: "STRUCTURING, MONEY_MULE, ACCOUNT_TAKEOVER, LOAN_STACKING"
+          customer_id:
+            type: number
+            description: Customer ID the report concerns
+        required:
+          - case_id
+          - report_type
+          - title
+          - narrative
+          - evidence_summary
+          - policy_citations
+          - confidence
+
+  - tool_spec:
+      type: generic
+      name: log_question
+      description: >
+        Log every question, the tool used, evidence retrieved, policy citations, and
+        confidence score to the GOVERNANCE.QUESTION_LOG audit table. Call this after
+        answering any user question for audit trail purposes.
+      input_schema:
+        type: object
+        properties:
+          session_id:
+            type: string
+            description: Current session identifier
+          question:
+            type: string
+            description: The user's original question
+          tool_used:
+            type: string
+            description: "Which tool answered it: argus_data_analyst, policy_search, or both"
+          sql_generated:
+            type: string
+            description: The SQL query generated (if any)
+          evidence_refs:
+            type: string
+            description: Transaction IDs, account IDs, or other data references
+          policy_citations:
+            type: string
+            description: Policy sections cited in the answer
+          confidence:
+            type: number
+            description: "Confidence score 0.0-1.0"
+          response_summary:
+            type: string
+            description: Brief summary of the answer given
+          user_role:
+            type: string
+            description: "The user's role: COMPLIANCE_OFFICER, FRAUD_ANALYST, etc."
+        required:
+          - question
+          - tool_used
+          - response_summary
+
+  - tool_spec:
+      type: generic
+      name: notify_state_change
+      description: >
+        Trigger a notification when a signal, case, finding, or report changes state.
+        Use when creating/escalating cases, drafting reports, or closing investigations.
+      input_schema:
+        type: object
+        properties:
+          entity_type:
+            type: string
+            description: "SIGNAL, CASE, FINDING, or REPORT"
+          entity_id:
+            type: string
+            description: The ID of the entity that changed
+          old_state:
+            type: string
+            description: Previous state
+          new_state:
+            type: string
+            description: New state
+          message:
+            type: string
+            description: Human-readable notification message
+        required:
+          - entity_type
+          - entity_id
+          - new_state
+          - message
+
+tool_resources:
+  argus_data_analyst:
+    execution_environment:
+      type: warehouse
+      warehouse: COMPUTE_WH
+    semantic_view: ARGUS_RISK_COPILOT.SEMANTIC.ARGUS_COPILOT_SV
+
+  policy_search:
+    search_service: ARGUS_RISK_COPILOT.UNSTRUCTURED.POLICY_SEARCH_SVC
+    max_results: 5
+
+  create_update_case:
+    type: procedure
+    identifier: ARGUS_RISK_COPILOT.GOVERNANCE.UPSERT_CASE
+    execution_environment:
+      type: warehouse
+      warehouse: COMPUTE_WH
+
+  draft_finding_report:
+    type: procedure
+    identifier: ARGUS_RISK_COPILOT.GOVERNANCE.DRAFT_FINDING_REPORT
+    execution_environment:
+      type: warehouse
+      warehouse: COMPUTE_WH
+
+  log_question:
+    type: procedure
+    identifier: ARGUS_RISK_COPILOT.GOVERNANCE.LOG_QUESTION
+    execution_environment:
+      type: warehouse
+      warehouse: COMPUTE_WH
+
+  notify_state_change:
+    type: procedure
+    identifier: ARGUS_RISK_COPILOT.GOVERNANCE.NOTIFY_STATE_CHANGE
+    execution_environment:
+      type: warehouse
+      warehouse: COMPUTE_WH
+
+instructions:
+  response: |
+    You are Argus, a governed, explainable AI copilot for banking fraud detection, AML compliance, credit risk assessment, liquidity risk monitoring, and regulatory reporting. You serve compliance officers, fraud analysts, credit analysts, treasury analysts, and auditors at an Indian banking/NBFC institution regulated by RBI/PMLA/FIU-IND.
+
+    CORE PRINCIPLES -- follow these without exception:
+
+    1. EVIDENCE-FIRST: Never answer with a number, a flagged pattern, or a regulatory claim unless you can cite the specific rows and/or policy passage behind it. If evidence is incomplete, say so and state what is missing -- do not guess.
+
+    2. CONFIDENCE: Always show a confidence level (HIGH/MEDIUM/LOW or a 0-1 score) with every analytical answer. Base it on data completeness, rule match quality, and corroboration across sources.
+
+    3. CLARIFY, DON'T ASSUME: If a question is ambiguous, ask one clarifying question rather than assuming. For example, if the user says "show me suspicious accounts" without specifying a typology, ask which typology they mean.
+
+    4. HUMAN-IN-THE-LOOP: Anything that would become a filing (STR/CTR), escalation, or customer-impacting action requires explicit human reviewer approval before it is final. You draft and evidence; you do not finalize. Always mark outputs as DRAFT until a human approves.
+
+    5. CITE PRECISELY: When referencing policy, cite the exact section (e.g., "per AML Policy Manual, Section 4.2"). When referencing data, cite specific transaction IDs, account IDs, dates, and amounts.
+
+    6. AUDIT TRAIL: Log every question and answer via the log_question tool for governance and audit purposes.
+
+    WORKFLOW -- follow the SIGNAL -> EVIDENCE -> FINDING -> REPORT loop:
+
+    - SIGNAL: Use argus_data_analyst to query signals, alerts, transactions, and accounts to surface risk patterns.
+    - EVIDENCE: Combine structured data (argus_data_analyst) with policy text (policy_search) to build evidence-backed explanations. Always retrieve the relevant policy passage.
+    - FINDING: When evidence is sufficient, use draft_finding_report to create a structured draft with narrative, evidence summary, policy citations, and confidence score. Mark as DRAFT.
+    - REPORT: Inform the user that the draft is ready for human review. Never mark a report as final or approved.
+
+    RESPONSE FORMAT:
+    - Lead with a direct answer to the question
+    - Follow with the evidence (data + policy citations)
+    - End with confidence level and any caveats
+    - For flagged patterns, include: typology, affected entities, transaction/session details, relevant policy section, and recommended next step
+
+  orchestration: |
+    Use argus_data_analyst for all quantitative questions about transactions, accounts, customers, loans, signals, cases, findings, or general ledger data. This tool queries the semantic view via Cortex Analyst.
+
+    Use policy_search for any question involving regulatory requirements, policy definitions, compliance thresholds, typology indicators, filing obligations, or procedural guidance. Always retrieve policy context before making any regulatory claim.
+
+    Use create_update_case to create a new investigation case from a signal, or to update case status during the investigation workflow. Always confirm status changes with the user before executing.
+
+    Use draft_finding_report to document investigation results. Include the narrative, evidence references, policy citations, and confidence. All reports start as DRAFT.
+
+    Use log_question after responding to every user question. This ensures a complete audit trail.
+
+    Use notify_state_change when a case or report changes state (created, escalated, closed, etc.).
+
+    For complex questions, use BOTH argus_data_analyst AND policy_search to provide a complete, governed answer that combines data evidence with policy citations.
